@@ -1,0 +1,239 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Images to PDF</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h1>Images → PDF</h1>
+
+        <p>Select your images and convert them into one PDF.</p>
+
+        <input
+            type="file"
+            id="imageInput"
+            accept="image/*"
+            multiple
+        >
+
+        <div id="preview"></div>
+
+        <button id="generateBtn">
+            Create PDF
+        </button>
+
+    </div>
+
+    <script src="script.js"></script>
+
+</body>
+</html> -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* * {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f5f5f5;
+}
+
+.container {
+    width: min(900px, 90%);
+    margin: 50px auto;
+    padding: 30px;
+    background: white;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+h1 {
+    margin-bottom: 10px;
+}
+
+input {
+    margin: 25px 0;
+}
+
+#preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+#preview img {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+}
+
+button {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 8px;
+    background: #2563eb;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #1d4ed8;
+} */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// const imageInput = document.getElementById("imageInput");
+// const preview = document.getElementById("preview");
+// const generateBtn = document.getElementById("generateBtn");
+
+// let selectedImages = [];
+
+// imageInput.addEventListener("change", function () {
+
+//     selectedImages = Array.from(this.files);
+
+//     preview.innerHTML = "";
+
+//     selectedImages.forEach((file) => {
+
+//         const img = document.createElement("img");
+
+//         img.src = URL.createObjectURL(file);
+
+//         preview.appendChild(img);
+//     });
+// });
+
+
+// generateBtn.addEventListener("click", async function () {
+
+//     if (selectedImages.length === 0) {
+//         alert("Please select at least one image.");
+//         return;
+//     }
+
+//     const { jsPDF } = window.jspdf;
+
+//     const pdf = new jsPDF();
+
+//     for (let i = 0; i < selectedImages.length; i++) {
+
+//         const file = selectedImages[i];
+
+//         const imageData = await fileToDataURL(file);
+
+//         const img = new Image();
+
+//         img.src = imageData;
+
+//         await img.decode();
+
+//         const pageWidth = 210;
+//         const pageHeight = 297;
+
+//         const imageRatio = img.width / img.height;
+
+//         let width = pageWidth;
+//         let height = width / imageRatio;
+
+//         // لو الصورة أطول من الصفحة
+//         if (height > pageHeight) {
+//             height = pageHeight;
+//             width = height * imageRatio;
+//         }
+
+//         const x = (pageWidth - width) / 2;
+//         const y = (pageHeight - height) / 2;
+
+//         if (i > 0) {
+//             pdf.addPage();
+//         }
+
+//         pdf.addImage(
+//             imageData,
+//             "JPEG",
+//             x,
+//             y,
+//             width,
+//             height
+//         );
+//     }
+
+//     pdf.save("images.pdf");
+// });
+
+
+// function fileToDataURL(file) {
+
+//     return new Promise((resolve, reject) => {
+
+//         const reader = new FileReader();
+
+//         reader.onload = () => resolve(reader.result);
+
+//         reader.onerror = reject;
+
+//         reader.readAsDataURL(file);
+//     });
+// }
+
+
+
+
+
+
+
+
+
+
+
