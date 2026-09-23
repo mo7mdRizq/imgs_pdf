@@ -1,15 +1,39 @@
-const imageInput = document.getElementById("imageInput");
-const dropZone = document.getElementById("dropZone");
+// =====================================
+// ELEMENTS
+// =====================================
 
-const preview = document.getElementById("preview");
-const imagesSection = document.getElementById("imagesSection");
+const imageInput =
+    document.getElementById("imageInput");
 
-const generateBtn = document.getElementById("generateBtn");
-const clearBtn = document.getElementById("clearBtn");
+const cameraInput =
+    document.getElementById("cameraInput");
 
-const addMoreBtn = document.getElementById("addMoreBtn");
+const dropZone =
+    document.getElementById("dropZone");
 
-const imageCount = document.getElementById("imageCount");
+const chooseImagesBtn =
+    document.getElementById("chooseImagesBtn");
+
+const cameraBtn =
+    document.getElementById("cameraBtn");
+
+const preview =
+    document.getElementById("preview");
+
+const imagesSection =
+    document.getElementById("imagesSection");
+
+const generateBtn =
+    document.getElementById("generateBtn");
+
+const clearBtn =
+    document.getElementById("clearBtn");
+
+const addMoreBtn =
+    document.getElementById("addMoreBtn");
+
+const imageCount =
+    document.getElementById("imageCount");
 
 const successOverlay =
     document.getElementById("successOverlay");
@@ -18,41 +42,173 @@ const successBtn =
     document.getElementById("successBtn");
 
 
+// Settings
+
+const pageSizeSelect =
+    document.getElementById("pageSize");
+
+const marginSelect =
+    document.getElementById("marginSize");
+
+const imageFitSelect =
+    document.getElementById("imageFit");
+
+const orientationButtons =
+    document.querySelectorAll(".orientation-btn");
+
+
+// Preview
+
+const previewImage =
+    document.getElementById("previewImage");
+
+const pdfPage =
+    document.getElementById("pdfPage");
+
+const prevPageBtn =
+    document.getElementById("prevPageBtn");
+
+const nextPageBtn =
+    document.getElementById("nextPageBtn");
+
+const currentPageElement =
+    document.getElementById("currentPage");
+
+const totalPagesElement =
+    document.getElementById("totalPages");
+
+
 // =====================================
-// SELECTED IMAGES
+// STATE
 // =====================================
 
 let selectedImages = [];
+
+let currentPageIndex = 0;
+
+let draggedIndex = null;
+
+
+// PDF settings
+
+const pdfSettings = {
+
+    pageSize: "a4",
+
+    orientation: "portrait",
+
+    margin: 10,
+
+    fit: "fit"
+
+};
 
 
 // =====================================
 // OPEN FILE PICKER
 // =====================================
 
-dropZone.addEventListener("click", () => {
-    imageInput.click();
-});
+chooseImagesBtn.addEventListener(
+    "click",
+    (event) => {
+
+        event.stopPropagation();
+
+        imageInput.click();
+
+    }
+);
 
 
-addMoreBtn.addEventListener("click", () => {
-    imageInput.click();
-});
+addMoreBtn.addEventListener(
+    "click",
+    () => {
+
+        imageInput.click();
+
+    }
+);
 
 
 // =====================================
-// FILE INPUT
+// CAMERA
 // =====================================
 
-imageInput.addEventListener("change", function () {
+cameraBtn.addEventListener(
+    "click",
+    (event) => {
 
-    const files = Array.from(this.files);
+        event.stopPropagation();
 
-    addImages(files);
+        cameraInput.click();
 
-    // Allow selecting the same file again
-    this.value = "";
+    }
+);
 
-});
+
+// =====================================
+// DROP ZONE CLICK
+// =====================================
+
+dropZone.addEventListener(
+    "click",
+    (event) => {
+
+        // Don't trigger file picker
+        // if a button was clicked
+
+        if (
+            event.target.closest("button")
+        ) {
+
+            return;
+
+        }
+
+        imageInput.click();
+
+    }
+);
+
+
+// =====================================
+// NORMAL FILE INPUT
+// =====================================
+
+imageInput.addEventListener(
+    "change",
+    function () {
+
+        const files =
+            Array.from(this.files);
+
+        addImages(files);
+
+        // Allow selecting same file again
+
+        this.value = "";
+
+    }
+);
+
+
+// =====================================
+// CAMERA INPUT
+// =====================================
+
+cameraInput.addEventListener(
+    "change",
+    function () {
+
+        const files =
+            Array.from(this.files);
+
+        addImages(files);
+
+        this.value = "";
+
+    }
+);
 
 
 // =====================================
@@ -61,13 +217,41 @@ imageInput.addEventListener("change", function () {
 
 function addImages(files) {
 
-    const validFiles = files.filter(file =>
-        file.type.startsWith("image/")
+    const validFiles =
+        files.filter(file =>
+            file.type.startsWith("image/")
+        );
+
+
+    if (validFiles.length === 0) {
+
+        return;
+
+    }
+
+
+    selectedImages.push(
+        ...validFiles
     );
 
-    selectedImages.push(...validFiles);
+
+    // Keep preview on first image
+    // only when adding first batch
+
+    if (
+        selectedImages.length ===
+        validFiles.length
+    ) {
+
+        currentPageIndex = 0;
+
+    }
+
 
     renderImages();
+
+    updatePDFPreview();
+
 }
 
 
@@ -79,130 +263,237 @@ function renderImages() {
 
     preview.innerHTML = "";
 
-    if (selectedImages.length === 0) {
 
-        imagesSection.classList.add("hidden");
+    if (
+        selectedImages.length === 0
+    ) {
 
-        dropZone.classList.remove("hidden");
+        imagesSection.classList.add(
+            "hidden"
+        );
+
+        dropZone.classList.remove(
+            "hidden"
+        );
 
         updateCounter();
 
         return;
+
     }
 
 
-    dropZone.classList.add("hidden");
-
-    imagesSection.classList.remove("hidden");
-
-
-    selectedImages.forEach((file, index) => {
-
-        const card =
-            document.createElement("div");
-
-        card.className = "image-card";
-
-        card.draggable = true;
-
-        card.dataset.index = index;
+    dropZone.classList.add(
+        "hidden"
+    );
 
 
-        // Image
-        const img =
-            document.createElement("img");
-
-        img.src = URL.createObjectURL(file);
+    imagesSection.classList.remove(
+        "hidden"
+    );
 
 
-        // Overlay
-        const overlay =
-            document.createElement("div");
-
-        overlay.className = "image-overlay";
+    selectedImages.forEach(
+        (file, index) => {
 
 
-        // Image number
-        const number =
-            document.createElement("span");
-
-        number.className = "image-number";
-
-        number.textContent = index + 1;
+            const card =
+                document.createElement("div");
 
 
-        // Remove button
-        const removeButton =
-            document.createElement("button");
-
-        removeButton.className = "remove-image";
-
-        removeButton.innerHTML = "×";
+            card.className =
+                "image-card";
 
 
-        removeButton.addEventListener(
-            "click",
-            (event) => {
-
-                event.stopPropagation();
-
-                selectedImages.splice(index, 1);
-
-                renderImages();
-
-            }
-        );
+            card.draggable = true;
 
 
-        overlay.appendChild(number);
-
-        card.appendChild(img);
-
-        card.appendChild(overlay);
-
-        card.appendChild(removeButton);
-
-        preview.appendChild(card);
+            card.dataset.index =
+                index;
 
 
-        // Drag events
-        card.addEventListener(
-            "dragstart",
-            handleDragStart
-        );
+            // =============================
+            // IMAGE
+            // =============================
 
-        card.addEventListener(
-            "dragover",
-            handleDragOver
-        );
+            const img =
+                document.createElement("img");
 
-        card.addEventListener(
-            "drop",
-            handleDrop
-        );
 
-        card.addEventListener(
-            "dragend",
-            handleDragEnd
-        );
+            img.src =
+                URL.createObjectURL(file);
 
-    });
+
+            img.alt =
+                `Image ${index + 1}`;
+
+
+            // =============================
+            // OVERLAY
+            // =============================
+
+            const overlay =
+                document.createElement("div");
+
+
+            overlay.className =
+                "image-overlay";
+
+
+            // =============================
+            // NUMBER
+            // =============================
+
+            const number =
+                document.createElement("span");
+
+
+            number.className =
+                "image-number";
+
+
+            number.textContent =
+                index + 1;
+
+
+            // =============================
+            // REMOVE BUTTON
+            // =============================
+
+            const removeButton =
+                document.createElement("button");
+
+
+            removeButton.className =
+                "remove-image";
+
+
+            removeButton.innerHTML =
+                "×";
+
+
+            removeButton.type =
+                "button";
+
+
+            removeButton.addEventListener(
+                "click",
+                (event) => {
+
+                    event.stopPropagation();
+
+
+                    selectedImages.splice(
+                        index,
+                        1
+                    );
+
+
+                    // Keep current page valid
+
+                    if (
+                        currentPageIndex >=
+                        selectedImages.length
+                    ) {
+
+                        currentPageIndex =
+                            Math.max(
+                                0,
+                                selectedImages.length - 1
+                            );
+
+                    }
+
+
+                    renderImages();
+
+                    updatePDFPreview();
+
+                }
+            );
+
+
+            // =============================
+            // BUILD CARD
+            // =============================
+
+            overlay.appendChild(
+                number
+            );
+
+
+            card.appendChild(
+                img
+            );
+
+
+            card.appendChild(
+                overlay
+            );
+
+
+            card.appendChild(
+                removeButton
+            );
+
+
+            preview.appendChild(
+                card
+            );
+
+
+            // =============================
+            // DRAG EVENTS
+            // =============================
+
+            card.addEventListener(
+                "dragstart",
+                handleDragStart
+            );
+
+
+            card.addEventListener(
+                "dragover",
+                handleDragOver
+            );
+
+
+            card.addEventListener(
+                "drop",
+                handleDrop
+            );
+
+
+            card.addEventListener(
+                "dragend",
+                handleDragEnd
+            );
+
+        }
+    );
 
 
     updateCounter();
+
 }
 
 
 // =====================================
-// UPDATE IMAGE COUNTER
+// IMAGE COUNTER
 // =====================================
 
 function updateCounter() {
 
-    const count = selectedImages.length;
+    const count =
+        selectedImages.length;
+
 
     imageCount.textContent =
-        `${count} ${count === 1 ? "image" : "images"}`;
+        `${count} ${
+            count === 1
+                ? "image"
+                : "images"
+        }`;
 
 }
 
@@ -211,15 +502,17 @@ function updateCounter() {
 // DRAG & DROP SORTING
 // =====================================
 
-let draggedIndex = null;
-
-
 function handleDragStart(event) {
 
     draggedIndex =
-        Number(event.currentTarget.dataset.index);
+        Number(
+            event.currentTarget.dataset.index
+        );
 
-    event.currentTarget.classList.add("dragging");
+
+    event.currentTarget.classList.add(
+        "dragging"
+    );
 
 }
 
@@ -235,8 +528,11 @@ function handleDrop(event) {
 
     event.preventDefault();
 
+
     const targetIndex =
-        Number(event.currentTarget.dataset.index);
+        Number(
+            event.currentTarget.dataset.index
+        );
 
 
     if (
@@ -266,7 +562,13 @@ function handleDrop(event) {
     );
 
 
+    currentPageIndex =
+        targetIndex;
+
+
     renderImages();
+
+    updatePDFPreview();
 
 }
 
@@ -277,13 +579,14 @@ function handleDragEnd(event) {
         "dragging"
     );
 
+
     draggedIndex = null;
 
 }
 
 
 // =====================================
-// DROP ZONE
+// DROP ZONE DRAG
 // =====================================
 
 dropZone.addEventListener(
@@ -292,7 +595,9 @@ dropZone.addEventListener(
 
         event.preventDefault();
 
-        dropZone.classList.add("dragover");
+        dropZone.classList.add(
+            "dragover"
+        );
 
     }
 );
@@ -316,13 +621,16 @@ dropZone.addEventListener(
 
         event.preventDefault();
 
+
         dropZone.classList.remove(
             "dragover"
         );
 
 
         const files =
-            Array.from(event.dataTransfer.files);
+            Array.from(
+                event.dataTransfer.files
+            );
 
 
         addImages(files);
@@ -332,7 +640,7 @@ dropZone.addEventListener(
 
 
 // =====================================
-// CLEAR ALL IMAGES
+// CLEAR ALL
 // =====================================
 
 clearBtn.addEventListener(
@@ -341,10 +649,371 @@ clearBtn.addEventListener(
 
         selectedImages = [];
 
+        currentPageIndex = 0;
+
         renderImages();
 
     }
 );
+
+
+// =====================================
+// PAGE SIZE
+// =====================================
+
+pageSizeSelect.addEventListener(
+    "change",
+    () => {
+
+        pdfSettings.pageSize =
+            pageSizeSelect.value;
+
+        updatePDFPreview();
+
+    }
+);
+
+
+// =====================================
+// MARGIN
+// =====================================
+
+marginSelect.addEventListener(
+    "change",
+    () => {
+
+        pdfSettings.margin =
+            Number(
+                marginSelect.value
+            );
+
+        updatePDFPreview();
+
+    }
+);
+
+
+// =====================================
+// IMAGE FIT
+// =====================================
+
+imageFitSelect.addEventListener(
+    "change",
+    () => {
+
+        pdfSettings.fit =
+            imageFitSelect.value;
+
+        updatePDFPreview();
+
+    }
+);
+
+
+// =====================================
+// ORIENTATION
+// =====================================
+
+orientationButtons.forEach(
+    button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                orientationButtons.forEach(
+                    item => {
+
+                        item.classList.remove(
+                            "active"
+                        );
+
+                    }
+                );
+
+
+                button.classList.add(
+                    "active"
+                );
+
+
+                pdfSettings.orientation =
+                    button.dataset.orientation;
+
+
+                updatePDFPreview();
+
+            }
+        );
+
+    }
+);
+
+
+// =====================================
+// PREVIEW NEXT
+// =====================================
+
+nextPageBtn.addEventListener(
+    "click",
+    () => {
+
+        if (
+            currentPageIndex <
+            selectedImages.length - 1
+        ) {
+
+            currentPageIndex++;
+
+            updatePDFPreview();
+
+        }
+
+    }
+);
+
+
+// =====================================
+// PREVIEW PREVIOUS
+// =====================================
+
+prevPageBtn.addEventListener(
+    "click",
+    () => {
+
+        if (
+            currentPageIndex > 0
+        ) {
+
+            currentPageIndex--;
+
+            updatePDFPreview();
+
+        }
+
+    }
+);
+
+
+// =====================================
+// UPDATE PDF PREVIEW
+// =====================================
+
+function updatePDFPreview() {
+
+    if (
+        selectedImages.length === 0
+    ) {
+
+        previewImage.src = "";
+
+        currentPageElement.textContent =
+            "0";
+
+        totalPagesElement.textContent =
+            "0";
+
+        prevPageBtn.disabled = true;
+
+        nextPageBtn.disabled = true;
+
+        return;
+
+    }
+
+
+    // Make sure index is valid
+
+    if (
+        currentPageIndex >=
+        selectedImages.length
+    ) {
+
+        currentPageIndex =
+            selectedImages.length - 1;
+
+    }
+
+
+    const file =
+        selectedImages[currentPageIndex];
+
+
+    const imageURL =
+        URL.createObjectURL(file);
+
+
+    previewImage.src =
+        imageURL;
+
+
+    // =================================
+    // IMAGE FIT
+    // =================================
+
+    previewImage.classList.remove(
+        "fit",
+        "fill"
+    );
+
+
+    previewImage.classList.add(
+        pdfSettings.fit
+    );
+
+
+    // =================================
+    // PAGE MARGINS
+    // =================================
+
+    const margin =
+        pdfSettings.margin;
+
+
+    /*
+     * Preview uses percentage-based
+     * margins to visually represent
+     * the PDF margins.
+     */
+
+    const pageSize =
+        getPageSize();
+
+
+    const marginX =
+        (margin / pageSize.width) * 100;
+
+
+    const marginY =
+        (margin / pageSize.height) * 100;
+
+
+    previewImage.style.left =
+        `${marginX}%`;
+
+
+    previewImage.style.top =
+        `${marginY}%`;
+
+
+    previewImage.style.width =
+        `${100 - marginX * 2}%`;
+
+
+    previewImage.style.height =
+        `${100 - marginY * 2}%`;
+
+
+    // =================================
+    // LANDSCAPE PREVIEW
+    // =================================
+
+    if (
+        pdfSettings.orientation ===
+        "landscape"
+    ) {
+
+        pdfPage.classList.add(
+            "landscape"
+        );
+
+    } else {
+
+        pdfPage.classList.remove(
+            "landscape"
+        );
+
+    }
+
+
+    // =================================
+    // COUNTER
+    // =================================
+
+    currentPageElement.textContent =
+        currentPageIndex + 1;
+
+
+    totalPagesElement.textContent =
+        selectedImages.length;
+
+
+    // =================================
+    // ARROWS
+    // =================================
+
+    prevPageBtn.disabled =
+        currentPageIndex === 0;
+
+
+    nextPageBtn.disabled =
+        currentPageIndex ===
+        selectedImages.length - 1;
+
+}
+
+
+// =====================================
+// PAGE SIZE HELPER
+// =====================================
+
+function getPageSize() {
+
+    let width;
+    let height;
+
+
+    switch (
+        pdfSettings.pageSize
+    ) {
+
+        case "a5":
+
+            width = 148;
+            height = 210;
+
+            break;
+
+
+        case "letter":
+
+            width = 215.9;
+            height = 279.4;
+
+            break;
+
+
+        case "a4":
+
+        default:
+
+            width = 210;
+            height = 297;
+
+            break;
+
+    }
+
+
+    if (
+        pdfSettings.orientation ===
+        "landscape"
+    ) {
+
+        return {
+            width: height,
+            height: width
+        };
+
+    }
+
+
+    return {
+        width,
+        height
+    };
+
+}
 
 
 // =====================================
@@ -355,8 +1024,12 @@ generateBtn.addEventListener(
     "click",
     async () => {
 
-        if (selectedImages.length === 0) {
+        if (
+            selectedImages.length === 0
+        ) {
+
             return;
+
         }
 
 
@@ -365,27 +1038,53 @@ generateBtn.addEventListener(
 
         try {
 
-            const { jsPDF } = window.jspdf;
+            const {
+                jsPDF
+            } = window.jspdf;
 
 
-            // =================================
-            // A4 PAGE
-            // =================================
-
-            const pageWidth = 210;
-            const pageHeight = 297;
+            const pageSize =
+                getPageSize();
 
 
             const pdf =
                 new jsPDF({
-                    orientation: "portrait",
+
+                    orientation:
+                        pdfSettings.orientation,
+
                     unit: "mm",
-                    format: "a4"
+
+                    format:
+                        pdfSettings.pageSize
+
                 });
 
 
+            const pageWidth =
+                pageSize.width;
+
+
+            const pageHeight =
+                pageSize.height;
+
+
+            const margin =
+                pdfSettings.margin;
+
+
+            const availableWidth =
+                pageWidth -
+                margin * 2;
+
+
+            const availableHeight =
+                pageHeight -
+                margin * 2;
+
+
             // =================================
-            // PROCESS EVERY IMAGE
+            // PROCESS IMAGES
             // =================================
 
             for (
@@ -398,62 +1097,119 @@ generateBtn.addEventListener(
                     selectedImages[i];
 
 
-                // Convert file to Base64
+                // Convert image
+
                 const imageData =
-                    await fileToDataURL(file);
+                    await fileToDataURL(
+                        file
+                    );
 
 
                 // Load image
+
                 const img =
-                    await loadImage(imageData);
+                    await loadImage(
+                        imageData
+                    );
 
 
-                // =================================
-                // IMAGE RATIO
-                // =================================
+                // Image ratio
 
                 const imageRatio =
-                    img.width / img.height;
+                    img.width /
+                    img.height;
 
 
                 const pageRatio =
-                    pageWidth / pageHeight;
+                    availableWidth /
+                    availableHeight;
 
 
                 let width;
+
                 let height;
 
 
-                /*
-                 * IMPORTANT:
-                 *
-                 * We NEVER stretch the image.
-                 *
-                 * The original aspect ratio
-                 * is always preserved.
-                 *
-                 * The image will fit INSIDE
-                 * the A4 page.
-                 */
+                // =================================
+                // FIT
+                // =================================
+
+                if (
+                    pdfSettings.fit ===
+                    "fit"
+                ) {
+
+                    /*
+                     * Keep the complete image.
+                     *
+                     * No stretching.
+                     * No distortion.
+                     * No cropping.
+                     */
+
+                    if (
+                        imageRatio >
+                        pageRatio
+                    ) {
+
+                        width =
+                            availableWidth;
+
+                        height =
+                            width /
+                            imageRatio;
+
+                    } else {
+
+                        height =
+                            availableHeight;
+
+                        width =
+                            height *
+                            imageRatio;
+
+                    }
+
+                }
 
 
-                if (imageRatio > pageRatio) {
+                // =================================
+                // FILL
+                // =================================
 
-                    // Image is wider than A4
+                else {
 
-                    width = pageWidth;
+                    /*
+                     * Fill the complete page.
+                     *
+                     * Aspect ratio is preserved.
+                     *
+                     * Some parts of the image
+                     * may be cropped.
+                     */
 
-                    height =
-                        width / imageRatio;
+                    if (
+                        imageRatio >
+                        pageRatio
+                    ) {
 
-                } else {
+                        height =
+                            availableHeight;
 
-                    // Image is taller than A4
+                        width =
+                            height *
+                            imageRatio;
 
-                    height = pageHeight;
+                    } else {
 
-                    width =
-                        height * imageRatio;
+                        width =
+                            availableWidth;
+
+                        height =
+                            width /
+                            imageRatio;
+
+                    }
 
                 }
 
@@ -462,34 +1218,67 @@ generateBtn.addEventListener(
                 // CENTER IMAGE
                 // =================================
 
-                const x =
-                    (pageWidth - width) / 2;
+                let x;
+
+                let y;
 
 
-                const y =
-                    (pageHeight - height) / 2;
+                if (
+                    pdfSettings.fit ===
+                    "fit"
+                ) {
+
+                    x =
+                        margin +
+                        (availableWidth -
+                            width) / 2;
 
 
-                // =================================
-                // ADD NEW PAGE
-                // =================================
+                    y =
+                        margin +
+                        (availableHeight -
+                            height) / 2;
 
-                if (i > 0) {
+                } else {
 
-                    pdf.addPage();
+                    x =
+                        margin +
+                        (availableWidth -
+                            width) / 2;
+
+
+                    y =
+                        margin +
+                        (availableHeight -
+                            height) / 2;
 
                 }
 
 
                 // =================================
-                // DETERMINE IMAGE FORMAT
+                // ADD PAGE
+                // =================================
+
+                if (i > 0) {
+
+                    pdf.addPage(
+                        pdfSettings.pageSize,
+                        pdfSettings.orientation
+                    );
+
+                }
+
+
+                // =================================
+                // IMAGE FORMAT
                 // =================================
 
                 let format = "JPEG";
 
 
                 if (
-                    file.type === "image/png"
+                    file.type ===
+                    "image/png"
                 ) {
 
                     format = "PNG";
@@ -497,14 +1286,16 @@ generateBtn.addEventListener(
                 }
 
 
-                if (
-                    file.type === "image/webp"
-                ) {
+                /*
+                 * WEBP is converted to JPEG
+                 * when necessary because it is
+                 * more reliable across PDF readers.
+                 */
 
-                    /*
-                     * jsPDF can handle WEBP
-                     * in modern versions.
-                     */
+                if (
+                    file.type ===
+                    "image/webp"
+                ) {
 
                     format = "WEBP";
 
@@ -516,21 +1307,30 @@ generateBtn.addEventListener(
                 // =================================
 
                 pdf.addImage(
+
                     imageData,
+
                     format,
+
                     x,
+
                     y,
+
                     width,
+
                     height,
+
                     undefined,
+
                     "FAST"
+
                 );
 
             }
 
 
             // =================================
-            // SAVE PDF
+            // DOWNLOAD
             // =================================
 
             pdf.save(
@@ -538,16 +1338,13 @@ generateBtn.addEventListener(
             );
 
 
-            // Small delay for animation
+            // Wait for animation
+
             await delay(500);
 
 
             setLoading(false);
 
-
-            // =================================
-            // SHOW SUCCESS
-            // =================================
 
             showSuccess();
 
@@ -574,7 +1371,7 @@ generateBtn.addEventListener(
 
 
 // =====================================
-// FILE -> DATA URL
+// FILE TO DATA URL
 // =====================================
 
 function fileToDataURL(file) {
@@ -587,7 +1384,9 @@ function fileToDataURL(file) {
 
 
             reader.onload =
-                () => resolve(reader.result);
+                () => resolve(
+                    reader.result
+                );
 
 
             reader.onerror =
@@ -598,7 +1397,9 @@ function fileToDataURL(file) {
                 );
 
 
-            reader.readAsDataURL(file);
+            reader.readAsDataURL(
+                file
+            );
 
         }
     );
@@ -640,10 +1441,12 @@ function loadImage(src) {
 
 
 // =====================================
-// LOADING STATE
+// LOADING
 // =====================================
 
-function setLoading(isLoading) {
+function setLoading(
+    isLoading
+) {
 
     if (isLoading) {
 
@@ -685,7 +1488,7 @@ function hideSuccess() {
 
 
 // =====================================
-// CREATE ANOTHER PDF
+// CREATE ANOTHER
 // =====================================
 
 successBtn.addEventListener(
@@ -695,11 +1498,12 @@ successBtn.addEventListener(
         hideSuccess();
 
 
-        // Clear selected images
         selectedImages = [];
 
 
-        // Clear preview
+        currentPageIndex = 0;
+
+
         renderImages();
 
     }
@@ -707,14 +1511,16 @@ successBtn.addEventListener(
 
 
 // =====================================
-// CLOSE SUCCESS WITH ESC
+// ESC
 // =====================================
 
 document.addEventListener(
     "keydown",
     (event) => {
 
-        if (event.key === "Escape") {
+        if (
+            event.key === "Escape"
+        ) {
 
             hideSuccess();
 
@@ -732,7 +1538,17 @@ function delay(ms) {
 
     return new Promise(
         resolve =>
-            setTimeout(resolve, ms)
+            setTimeout(
+                resolve,
+                ms
+            )
     );
 
 }
+
+
+// =====================================
+// INITIAL PREVIEW
+// =====================================
+
+updatePDFPreview();
