@@ -156,7 +156,7 @@ input {
 .hero {
     text-align: center;
 
-    padding: 65px 0 45px;
+    padding: 30px 0 55px;
 }
 
 
@@ -250,7 +250,7 @@ input {
 
 
 .drop-zone {
-    min-height: 300px;
+    min-height: 250px;
 
     border: 2px dashed #dbcbd8;
 

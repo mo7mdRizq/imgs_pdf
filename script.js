@@ -18,6 +18,10 @@ const successBtn =
     document.getElementById("successBtn");
 
 
+// =====================================
+// SELECTED IMAGES
+// =====================================
+
 let selectedImages = [];
 
 
@@ -45,7 +49,7 @@ imageInput.addEventListener("change", function () {
 
     addImages(files);
 
-    // يسمح باختيار نفس الصورة مرة أخرى
+    // Allow selecting the same file again
     this.value = "";
 
 });
@@ -64,7 +68,6 @@ function addImages(files) {
     selectedImages.push(...validFiles);
 
     renderImages();
-
 }
 
 
@@ -105,18 +108,21 @@ function renderImages() {
         card.dataset.index = index;
 
 
+        // Image
         const img =
             document.createElement("img");
 
         img.src = URL.createObjectURL(file);
 
 
+        // Overlay
         const overlay =
             document.createElement("div");
 
         overlay.className = "image-overlay";
 
 
+        // Image number
         const number =
             document.createElement("span");
 
@@ -125,6 +131,7 @@ function renderImages() {
         number.textContent = index + 1;
 
 
+        // Remove button
         const removeButton =
             document.createElement("button");
 
@@ -183,12 +190,11 @@ function renderImages() {
 
 
     updateCounter();
-
 }
 
 
 // =====================================
-// COUNTER
+// UPDATE IMAGE COUNTER
 // =====================================
 
 function updateCounter() {
@@ -237,7 +243,9 @@ function handleDrop(event) {
         draggedIndex === null ||
         draggedIndex === targetIndex
     ) {
+
         return;
+
     }
 
 
@@ -324,7 +332,7 @@ dropZone.addEventListener(
 
 
 // =====================================
-// CLEAR ALL
+// CLEAR ALL IMAGES
 // =====================================
 
 clearBtn.addEventListener(
@@ -348,9 +356,7 @@ generateBtn.addEventListener(
     async () => {
 
         if (selectedImages.length === 0) {
-
             return;
-
         }
 
 
@@ -362,6 +368,14 @@ generateBtn.addEventListener(
             const { jsPDF } = window.jspdf;
 
 
+            // =================================
+            // A4 PAGE
+            // =================================
+
+            const pageWidth = 210;
+            const pageHeight = 297;
+
+
             const pdf =
                 new jsPDF({
                     orientation: "portrait",
@@ -370,11 +384,9 @@ generateBtn.addEventListener(
                 });
 
 
-            const pageWidth = 210;
-            const pageHeight = 297;
-
-            const margin = 8;
-
+            // =================================
+            // PROCESS EVERY IMAGE
+            // =================================
 
             for (
                 let i = 0;
@@ -386,47 +398,69 @@ generateBtn.addEventListener(
                     selectedImages[i];
 
 
+                // Convert file to Base64
                 const imageData =
                     await fileToDataURL(file);
 
 
+                // Load image
                 const img =
                     await loadImage(imageData);
 
 
-                const availableWidth =
-                    pageWidth - margin * 2;
-
-
-                const availableHeight =
-                    pageHeight - margin * 2;
-
+                // =================================
+                // IMAGE RATIO
+                // =================================
 
                 const imageRatio =
                     img.width / img.height;
 
 
-                let width =
-                    availableWidth;
+                const pageRatio =
+                    pageWidth / pageHeight;
 
 
-                let height =
-                    width / imageRatio;
+                let width;
+                let height;
 
 
-                if (
-                    height >
-                    availableHeight
-                ) {
+                /*
+                 * IMPORTANT:
+                 *
+                 * We NEVER stretch the image.
+                 *
+                 * The original aspect ratio
+                 * is always preserved.
+                 *
+                 * The image will fit INSIDE
+                 * the A4 page.
+                 */
+
+
+                if (imageRatio > pageRatio) {
+
+                    // Image is wider than A4
+
+                    width = pageWidth;
 
                     height =
-                        availableHeight;
+                        width / imageRatio;
+
+                } else {
+
+                    // Image is taller than A4
+
+                    height = pageHeight;
 
                     width =
                         height * imageRatio;
 
                 }
 
+
+                // =================================
+                // CENTER IMAGE
+                // =================================
 
                 const x =
                     (pageWidth - width) / 2;
@@ -436,6 +470,10 @@ generateBtn.addEventListener(
                     (pageHeight - height) / 2;
 
 
+                // =================================
+                // ADD NEW PAGE
+                // =================================
+
                 if (i > 0) {
 
                     pdf.addPage();
@@ -443,9 +481,9 @@ generateBtn.addEventListener(
                 }
 
 
-                /*
-                 * Determine image format
-                 */
+                // =================================
+                // DETERMINE IMAGE FORMAT
+                // =================================
 
                 let format = "JPEG";
 
@@ -463,10 +501,19 @@ generateBtn.addEventListener(
                     file.type === "image/webp"
                 ) {
 
+                    /*
+                     * jsPDF can handle WEBP
+                     * in modern versions.
+                     */
+
                     format = "WEBP";
 
                 }
 
+
+                // =================================
+                // ADD IMAGE
+                // =================================
 
                 pdf.addImage(
                     imageData,
@@ -482,30 +529,39 @@ generateBtn.addEventListener(
             }
 
 
+            // =================================
+            // SAVE PDF
+            // =================================
+
             pdf.save(
                 "images-to-pdf.pdf"
             );
 
 
-            /*
-             * Small delay so the user
-             * can actually see the animation
-             */
-
-            await delay(450);
+            // Small delay for animation
+            await delay(500);
 
 
             setLoading(false);
 
+
+            // =================================
+            // SHOW SUCCESS
+            // =================================
 
             showSuccess();
 
 
         } catch (error) {
 
-            console.error(error);
+            console.error(
+                "PDF Error:",
+                error
+            );
+
 
             setLoading(false);
+
 
             alert(
                 "Something went wrong while creating the PDF."
@@ -535,7 +591,11 @@ function fileToDataURL(file) {
 
 
             reader.onerror =
-                reject;
+                () => reject(
+                    new Error(
+                        "Could not read image."
+                    )
+                );
 
 
             reader.readAsDataURL(file);
@@ -564,7 +624,11 @@ function loadImage(src) {
 
 
             img.onerror =
-                reject;
+                () => reject(
+                    new Error(
+                        "Could not load image."
+                    )
+                );
 
 
             img.src = src;
@@ -599,7 +663,7 @@ function setLoading(isLoading) {
 
 
 // =====================================
-// SUCCESS
+// SUCCESS MODAL
 // =====================================
 
 function showSuccess() {
@@ -621,7 +685,7 @@ function hideSuccess() {
 
 
 // =====================================
-// CREATE ANOTHER
+// CREATE ANOTHER PDF
 // =====================================
 
 successBtn.addEventListener(
@@ -630,8 +694,12 @@ successBtn.addEventListener(
 
         hideSuccess();
 
+
+        // Clear selected images
         selectedImages = [];
 
+
+        // Clear preview
         renderImages();
 
     }
@@ -639,16 +707,14 @@ successBtn.addEventListener(
 
 
 // =====================================
-// ESC CLOSE
+// CLOSE SUCCESS WITH ESC
 // =====================================
 
 document.addEventListener(
     "keydown",
     (event) => {
 
-        if (
-            event.key === "Escape"
-        ) {
+        if (event.key === "Escape") {
 
             hideSuccess();
 
